@@ -11,18 +11,21 @@ app.use(express.json());
 app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
 app.use("/customer/auth/*", function auth(req,res,next){
-//Write the authenication mechanism here
-    // check if the user session exist
-    if (req.session.authorization['accessToken']) {
-      jwt.verify(token, "access", (err, user) => {
-            if (!err) {
-                req.user = user; // Set authenticated user data on the request object
-                next(); // Proceed to the next middleware
-            } else {
-                return res.status(403).json({ message: "User not authenticated" }); // Return error if token verification fails
-            }
-        });
-    }
+	// Check if session and authorization exist
+	if (req.session.authorization && req.session.authorization['accessToken']) {
+			let token = req.session.authorization['accessToken']; // Define token variable
+			
+			jwt.verify(token, "access", (err, user) => {
+					if (!err) {
+							req.user = user;
+							next();
+					} else {
+							return res.status(403).json({ message: "User not authenticated" });
+					}
+			});
+	} else {
+			return res.status(403).json({ message: "User not logged in" });
+	}
 });
  
 const PORT =5000;
